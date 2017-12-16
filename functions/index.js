@@ -48,7 +48,7 @@ exports.dailyLotStatusUpdate = functions.https.onRequest((req, res) => {
 
   // res.status(200).send(updates);
   // ref.update(updates)
-  res.status(200).send('ok: ' + currentDate);
+  res.status(200).send('ok: ' + currentDate.toISOString());
 
 
 });
