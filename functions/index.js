@@ -1,15 +1,3 @@
-/**
-* model syntax
-*/
-// ref.child('statuscolor').orderByChild('color').equalTo('violet').once('value').then(snapshot => {
-//   snapshot.forEach(element => {
-//     updates['/statuscolor/' + element.key + '/color'] = "gray";
-//   });
-
-// }).catch(reason => {
-//   res.status(500).send('status color: ' + reason);
-// });
-
 'use strict';
 
 const functions = require('firebase-functions');
@@ -18,37 +6,60 @@ admin.initializeApp(functions.config().firebase);
 
 const ref = admin.database().ref();
 
-exports.dailyLotStatusUpdate = functions.https.onRequest((req, res) => {
-  const currentDate = new Date();
-  var updates = {};
-
-
-
-
-  ref.child('lots').orderByChild('status').equalTo('available').once('value').then(snapshot => {
+exports.update_lotDetails_OnApplication_OnNewChange = functions.https.onRequest((req, res) => {
+  ref.child('applications').once('value').then(snapshot => {
     snapshot.forEach(element => {
-      ref.child('lots').child(element.key).set ({
-          area: element.val().area,
-          block: element.val().block,
-          color: element.val().color,
-          map_points: element.val().map_points,
-          name: element.val().name,
-          type: element.val().type,
-          status: element.val().status,
-          dailyRunLastUpdated: currentDate.toISOString()
+      return getLotDetails(element.val().lot).then(tokens => {
+        element.ref.update({ lotdetails: JSON.stringify(tokens) });
       });
     });
-
-    
-
+    res.status(200).send('lot data updates: ok');
   }).catch(reason => {
-    res.status(200).send('lots: ' + reason);
+    res.status(200).send('lot Data Updates: ' + reason);
   });
-
-
-  // res.status(200).send(updates);
-  // ref.update(updates)
-  res.status(200).send('ok: ' + currentDate.toISOString());
-
-
 });
+
+exports.update_agentdetails_OnApplication_OnNewChange = functions.https.onRequest((req, res) => {
+  ref.child('applications').once('value').then(snapshot => {
+    snapshot.forEach(element => {
+      return getAgentDetails(element.val().agent).then(tokens => {
+        element.ref.update({ agentdetails: JSON.stringify(tokens) });
+      });
+    });
+    res.status(200).send('agent data updates: ok');
+  }).catch(reason => {
+    res.status(200).send('agent Data Updates: ' + reason);
+  });
+});
+
+exports.update_buyerdetails_OnApplication_OnNewChange = functions.https.onRequest((req, res) => {
+  ref.child('applications').once('value').then(snapshot => {
+    snapshot.forEach(element => {
+      return getBuyerDetails(element.val().buyer).then(tokens => {
+        element.ref.update({ buyerdetails: JSON.stringify(tokens) });
+      });
+    });
+    res.status(200).send('buyer data updates: ok');
+  }).catch(reason => {
+    res.status(200).send('buyer Data Updates: ' + reason);
+  });
+});
+
+
+function getLotDetails(lot) {
+  return admin.database().ref('/lots/' + lot).once('value').then(snap => {
+    return snap.val();
+  });
+}
+
+function getAgentDetails(agent) {
+  return admin.database().ref('/agents/' + agent).once('value').then(snap => {
+    return snap.val();
+  });
+}
+
+function getBuyerDetails(buyer) {
+  return admin.database().ref('/buyers/' + buyer).once('value').then(snap => {
+    return snap.val();
+  });
+}
