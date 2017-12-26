@@ -2,6 +2,7 @@
 
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
+const cors = require('cors')({ origin: true });
 admin.initializeApp(functions.config().firebase);
 
 const ref = admin.database().ref();
@@ -9,9 +10,15 @@ const ref = admin.database().ref();
 exports.update_lotDetails_OnApplication_OnNewChange = functions.https.onRequest((req, res) => {
   ref.child('applications').once('value').then(snapshot => {
     snapshot.forEach(element => {
-      return getLotDetails(element.val().lot).then(tokens => {
-        element.ref.update({ lotdetails: JSON.stringify(tokens) });
-      });
+      var lot = element.val().lot;
+      if (lot) {
+        getLotDetails(lot).then(tokens => {
+          element.ref.update({ lotdetails: tokens });
+        });
+      }
+      else {
+        element.ref.update({ lotdetails: '' });
+      }
     });
     res.status(200).send('lot data updates: ok');
   }).catch(reason => {
@@ -22,9 +29,15 @@ exports.update_lotDetails_OnApplication_OnNewChange = functions.https.onRequest(
 exports.update_agentdetails_OnApplication_OnNewChange = functions.https.onRequest((req, res) => {
   ref.child('applications').once('value').then(snapshot => {
     snapshot.forEach(element => {
-      return getAgentDetails(element.val().agent).then(tokens => {
-        element.ref.update({ agentdetails: JSON.stringify(tokens) });
-      });
+      var agent = element.val().agent;
+      if (agent) {
+        getAgentDetails(agent).then(tokens => {
+          element.ref.update({ agentdetails: tokens });
+        });
+      }
+      else {
+        element.ref.update({ agentdetails: '' });
+      }
     });
     res.status(200).send('agent data updates: ok');
   }).catch(reason => {
@@ -35,9 +48,15 @@ exports.update_agentdetails_OnApplication_OnNewChange = functions.https.onReques
 exports.update_buyerdetails_OnApplication_OnNewChange = functions.https.onRequest((req, res) => {
   ref.child('applications').once('value').then(snapshot => {
     snapshot.forEach(element => {
-      return getBuyerDetails(element.val().buyer).then(tokens => {
-        element.ref.update({ buyerdetails: JSON.stringify(tokens) });
-      });
+      var buyer = element.val().buyer;
+      if (buyer) {
+        getBuyerDetails(buyer).then(tokens => {
+          element.ref.update({ buyerdetails: tokens });
+        });
+      }
+      else {
+        element.ref.update({ buyerdetails: '' });
+      }
     });
     res.status(200).send('buyer data updates: ok');
   }).catch(reason => {
@@ -45,20 +64,47 @@ exports.update_buyerdetails_OnApplication_OnNewChange = functions.https.onReques
   });
 });
 
+exports.getServerCurrentDateTime = functions.https.onRequest((req, res) => {
+  var currentdatetime = new Date();
+  res.status(200).send(currentdatetime);
 
-function getLotDetails(lot) {
+});
+
+
+exports.applications = functions.https.onRequest((req, res) => {
+  cors(req, res, () => {
+    // res.status(200).send({test: 'Testing functions'});
+    ref.child('lots').once('value').then(snapshot => {
+      // res.status(200).send(snapshot.JSON());
+
+      var arr = [];
+
+      snapshot.forEach(element => {
+        arr.push(element);
+      });
+
+      res.status(200).send(arr);
+
+    }).catch(reason => {
+      res.status(200).send(reason);
+    });
+  });
+});
+
+
+const getLotDetails = (lot) => {
   return admin.database().ref('/lots/' + lot).once('value').then(snap => {
     return snap.val();
   });
 }
 
-function getAgentDetails(agent) {
+const getAgentDetails = (agent) => {
   return admin.database().ref('/agents/' + agent).once('value').then(snap => {
     return snap.val();
   });
 }
 
-function getBuyerDetails(buyer) {
+const getBuyerDetails = (buyer) => {
   return admin.database().ref('/buyers/' + buyer).once('value').then(snap => {
     return snap.val();
   });

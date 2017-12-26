@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "cors": "^2.8.4",
+    "node-cors": "^1.0.0"
+  }
+}
