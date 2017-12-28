@@ -91,74 +91,58 @@ exports.applications = functions.https.onRequest((req, res) => {
   });
 });
 
-exports.updateBlocksMapRenderDetails = functions.https.onRequest((req, res) => {
-  ref.child('blocks').once('value').then(snapshot => {
-    // .orderByChild('maprenderdetailsupdate').equalTo(1).limitToFirst(100)
+exports.updateMapRenderDetails = functions.https.onRequest((req, res) => {
+  ref.child('lots').orderByChild('maprenderdetailsupdate').equalTo(1).limitToFirst(10).once('value').then(snapshot => {
+    
 
-    getStatusColors().then(statusColors => {
+    snapshot.forEach(element => {
 
-      snapshot.forEach(element => {
+      var elementVal = element.val();
+      var designation = elementVal.designation;
+      var status = elementVal.status;
+      var type = elementVal.type;
 
-        var mapRenderDetails = {
-          stroke_color: (typeof (statusColors[element.val().type]) != 'undefined' ? statusColors[element.val().type].stroke_color : 'white'),
-          bg_color: (typeof (statusColors[element.val().type]) != 'undefined' ? statusColors[element.val().type].bg_color : 'gray'),
-          fore_color: (typeof (statusColors[element.val().type]) != 'undefined' ? statusColors[element.val().type].fore_color : 'white'),
-          type_name: (typeof (statusColors[element.val().type]) != 'undefined' ? statusColors[element.val().type].name : '')
-        };
 
-        element.ref.update({
-          partname: ('Block ' + element.val().block + ' - Part ' + element.val().block),
-          maprenderdetails: mapRenderDetails,
-          maprenderdetailsupdate: 2
+      if (designation) {
+        getStatusColorDetails(designation).then(tokens => {
+          element.ref.child('maprenderdetails').ref.update({ 
+            stroke_color: tokens.stroke_color,
+            designation_name: tokens.name
+           });
+        }).catch(reason => {
+          res.status(200).send(reason);
         });
+      }
 
+      if (status) {
+        getStatusColorDetails(status).then(tokens => {
+          element.ref.child('maprenderdetails').ref.update({ 
+            bg_color: tokens.bg_color,
+            fore_color: tokens.fore_color,
+            status_name: tokens.name
+           });
+        }).catch(reason => {
+          res.status(200).send(reason);
+        });
+      }
+
+      if (type) {
+        getStatusColorDetails(type).then(tokens => {
+          element.ref.child('maprenderdetails').ref.update({ 
+            type_name: tokens.name
+           });
+        }).catch(reason => {
+          res.status(200).send(reason);
+        });
+      }
+
+      element.ref.update({
+        maprenderdetailsupdate: 2
       });
 
-      res.status(200).send('ok:' + snapshot.numChildren());
-
-    }).catch(reason => {
-      res.status(200).send('Map Render Details Updates in status color: ' + reason);
     });
 
-
-  }).catch(reason => {
-    res.status(200).send('Map Render Details Updates: ' + reason);
-  });
-
-});
-
-exports.updateLotsMapRenderDetails = functions.https.onRequest((req, res) => {
-  ref.child('lots').once('value').then(snapshot => {
-    // .orderByChild('maprenderdetailsupdate').equalTo(1).limitToFirst(100)
-
-    getStatusColors().then(statusColors => {
-
-      snapshot.forEach(element => {
-
-        var mapRenderDetails = {
-          designation_name: (typeof (statusColors[element.val().designation]) != 'undefined' ? statusColors[element.val().designation].name : ''),
-          stroke_color: (typeof (statusColors[element.val().designation]) != 'undefined' ? statusColors[element.val().designation].stroke_color : 'white'),
-          bg_color: (typeof (statusColors[element.val().status]) != 'undefined' ? statusColors[element.val().status].bg_color : 'gray'),
-          fore_color: (typeof (statusColors[element.val().status]) != 'undefined' ? statusColors[element.val().status].fore_color : 'white'),
-          status_name: (typeof (statusColors[element.val().status]) != 'undefined' ? statusColors[element.val().status].name : ''),
-          type_name: (typeof (statusColors[element.val().type]) != 'undefined' ? statusColors[element.val().type].name : ''),
-          type_bg_color: (typeof (statusColors[element.val().type]) != 'undefined' ? statusColors[element.val().type].bg_color : ''),
-          type_fore_color: (typeof (statusColors[element.val().type]) != 'undefined' ? statusColors[element.val().type].fore_color : '')
-        };
-
-        element.ref.update({
-          maprenderdetails: mapRenderDetails,
-          maprenderdetailsupdate: 2
-        });
-
-      });
-
-      res.status(200).send('ok:' + snapshot.numChildren());
-
-    }).catch(reason => {
-      res.status(200).send('Map Render Details Updates in status color: ' + reason);
-    });
-
+    res.status(200).send('ok:'+ snapshot.numChildren());
 
   }).catch(reason => {
     res.status(200).send('Map Render Details Updates: ' + reason);
@@ -167,26 +151,25 @@ exports.updateLotsMapRenderDetails = functions.https.onRequest((req, res) => {
 });
 
 exports.setupMapRenderDetailsFirst = functions.https.onRequest((req, res) => {
-  ref.child('lots').limitToFirst(300).once('value').then(snapshot => {
+  ref.child('lots').limitToFirst(10).once('value').then(snapshot => {
     snapshot.forEach(element => {
 
-      // var mapRenderDetails = {
-      //   bg_color: '',
-      //   stroke_color: '',
-      //   fore_color: '',
-      //   designation_name: '',
-      //   status_name: '',
-      //   type_name: ''
-      // };
-
-      // maprenderdetails: mapRenderDetails,
+      var mapRenderDetails = {
+        bg_color: '',
+        stroke_color: '',
+        fore_color: '',
+        designation_name: '',
+        status_name: '',
+        type_name: ''
+      };
 
       element.ref.update({
+        maprenderdetails: mapRenderDetails,
         maprenderdetailsupdate: 1
       });
     });
 
-    res.status(200).send('ok:' + snapshot.numChildren());
+    res.status(200).send('ok:'+ snapshot.numChildren());
 
   }).catch(reason => {
     res.status(200).send('Map Render Details setup: ' + reason);
@@ -223,8 +206,8 @@ const getBuyerDetails = (buyer) => {
   });
 }
 
-const getStatusColors = () => {
-  return admin.database().ref('/statuscolor').once('value').then(snap => {
+const getStatusColorDetails = (uid) => {
+  return admin.database().ref('/statuscolor/' + uid).once('value').then(snap => {
     return snap.val();
   });
 }
