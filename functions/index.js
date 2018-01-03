@@ -102,72 +102,100 @@ exports.fiveminuteReset = functions.https.onRequest((req, res) => {
 
       getStatusColors().then(statusColors => {
         if (statusColors) {
+
           snapshot.forEach(element => {
+
             if (element.val().reservationdetails.expiry) {
+
               getNextReservation(element.key, element.val().reservation, element.val().reservationdetails.expiry).then(tokens => {
-                var updatePathsAtOnce = {};
-                if (tokens) {
 
-                  var keys = Object.keys(tokens);
-                  var previousDate;
-                  var key = '';
+                var map_lot = 'block' + element.val().block + 'lot' + element.val().lot;
+                getMapLotStatus(map_lot, element.val().level).then(mapLotStatus => {
 
-                  keys.forEach(ckey => {
-                    //contain next
-                    //check if next reservation is also expired
-                    var kxdate = new Date(tokens[ckey].expiry);
-                    if (tokens[ckey].expiry) {
-                      if (kxdate > sdate) {
-                        if (previousDate) {
-                          if (kxdate < previousDate) {
-                            //if current expiry date is greater than previous evaluated expiry
+                  var updatePathsAtOnce = {};
+                  if (tokens) {
+                    var keys = Object.keys(tokens);
+                    var previousDate;
+                    var key = '';
+
+                    keys.forEach(ckey => {
+                      //contain next
+                      //check if next reservation is also expired
+                      var kxdate = new Date(tokens[ckey].expiry);
+                      if (tokens[ckey].expiry) {
+                        if (kxdate > sdate) {
+                          if (previousDate) {
+                            if (kxdate < previousDate) {
+                              //if current expiry date is greater than previous evaluated expiry
+                              key = ckey;
+                            }
+                          }
+                          else {
                             key = ckey;
                           }
-                        }
-                        else {
-                          key = ckey;
-                        }
 
-                        previousDate = kxdate;
+                          previousDate = kxdate;
+                        }
+                      }
+                    });
+
+                    if (key) {
+                      updatePathsAtOnce['/reservations/' + element.key + '/' + element.val().reservation + '/iscurrent'] = false;
+                      updatePathsAtOnce['/reservations/' + element.key + '/' + element.val().reservation + '/isexpired'] = true;
+                      updatePathsAtOnce['/reservations/' + element.key + '/' + key + '/iscurrent'] = true;
+                      updatePathsAtOnce['/reservations/' + element.key + '/' + key + '/isexpired'] = false;
+                      tokens[key].iscurrent = true;
+                      tokens[key].isxpired = false;
+                      updatePathsAtOnce['/lots/' + element.key + '/reservation'] = key.toString();
+                      updatePathsAtOnce['/lots/' + element.key + '/reservationdetails'] = tokens[key];
+                      updatePathsAtOnce['/lots/' + element.key + '/status'] = tokens[key].type;
+                      updatePathsAtOnce['/lots/' + element.key + '/maprenderdetails/bg_color'] = statusColors[tokens[key].type].bg_color;
+                      updatePathsAtOnce['/lots/' + element.key + '/maprenderdetails/fore_color'] = statusColors[tokens[key].type].fore_color;
+                      updatePathsAtOnce['/lots/' + element.key + '/maprenderdetails/status_name'] = statusColors[tokens[key].type].name;
+
+                      //if have map_lot then update map_lot
+                      if (mapLotStatus) {
+                        updatePathsAtOnce['/lots/' + map_lot + '/status'] = mapLotStatus;
+                        updatePathsAtOnce['/lots/' + map_lot + '/maprenderdetails/bg_color'] = statusColors[mapLotStatus].bg_color;
+                        updatePathsAtOnce['/lots/' + map_lot + '/maprenderdetails/fore_color'] = statusColors[mapLotStatus].fore_color;
+                        updatePathsAtOnce['/lots/' + map_lot + '/maprenderdetails/status_name'] = statusColors[mapLotStatus].name;
                       }
                     }
-                  });
 
-                  if (key) {
+                  }
+                  else {
+                    //no next
                     updatePathsAtOnce['/reservations/' + element.key + '/' + element.val().reservation + '/iscurrent'] = false;
                     updatePathsAtOnce['/reservations/' + element.key + '/' + element.val().reservation + '/isexpired'] = true;
-                    updatePathsAtOnce['/reservations/' + element.key + '/' + key + '/iscurrent'] = true;
-                    updatePathsAtOnce['/reservations/' + element.key + '/' + key + '/isexpired'] = false;
-                    tokens[key].iscurrent = true;
-                    tokens[key].isxpired = false;
-                    updatePathsAtOnce['/lots/' + element.key + '/reservation'] = key.toString();
-                    updatePathsAtOnce['/lots/' + element.key + '/reservationdetails'] = tokens[key];
-                    updatePathsAtOnce['/lots/' + element.key + '/status'] = tokens[key].type;
-                    updatePathsAtOnce['/lots/' + element.key + '/maprenderdetails/bg_color'] = statusColors[tokens[key].type].bg_color;
-                    updatePathsAtOnce['/lots/' + element.key + '/maprenderdetails/fore_color'] = statusColors[tokens[key].type].fore_color;
-                    updatePathsAtOnce['/lots/' + element.key + '/maprenderdetails/status_name'] = statusColors[tokens[key].type].name;
-                  }
-                }
-                else {
-                  //no next
-                  updatePathsAtOnce['/reservations/' + element.key + '/' + element.val().reservation + '/iscurrent'] = false;
-                  updatePathsAtOnce['/reservations/' + element.key + '/' + element.val().reservation + '/isexpired'] = true;
-                  updatePathsAtOnce['/lots/' + element.key + '/reservation'] = '';
-                  updatePathsAtOnce['/lots/' + element.key + '/reservationdetails'] = '';
-                  updatePathsAtOnce['/lots/' + element.key + '/status'] = 'available';
-                  updatePathsAtOnce['/lots/' + element.key + '/maprenderdetails/bg_color'] = statusColors['available'].bg_color;
-                  updatePathsAtOnce['/lots/' + element.key + '/maprenderdetails/fore_color'] = statusColors['available'].fore_color;
-                  updatePathsAtOnce['/lots/' + element.key + '/maprenderdetails/status_name'] = statusColors['available'].name;
-                }
+                    updatePathsAtOnce['/lots/' + element.key + '/reservation'] = '';
+                    updatePathsAtOnce['/lots/' + element.key + '/reservationdetails'] = '';
+                    updatePathsAtOnce['/lots/' + element.key + '/status'] = 'available';
+                    updatePathsAtOnce['/lots/' + element.key + '/maprenderdetails/bg_color'] = statusColors['available'].bg_color;
+                    updatePathsAtOnce['/lots/' + element.key + '/maprenderdetails/fore_color'] = statusColors['available'].fore_color;
+                    updatePathsAtOnce['/lots/' + element.key + '/maprenderdetails/status_name'] = statusColors['available'].name;
 
-                ref.update(updatePathsAtOnce).then(function () {
-                  console.log("Write completed")
-                }).catch(function (error) {
-                  res.status(200).send(error);
+                    //if have map_lot then update map_lot
+                    if (mapLotStatus) {
+                      updatePathsAtOnce['/lots/' + map_lot + '/status'] = mapLotStatus;
+                      updatePathsAtOnce['/lots/' + map_lot + '/maprenderdetails/bg_color'] = statusColors[mapLotStatus].bg_color;
+                      updatePathsAtOnce['/lots/' + map_lot + '/maprenderdetails/fore_color'] = statusColors[mapLotStatus].fore_color;
+                      updatePathsAtOnce['/lots/' + map_lot + '/maprenderdetails/status_name'] = statusColors[mapLotStatus].name;
+                    }
+
+                  }
+
+                  ref.update(updatePathsAtOnce).then(function () {
+                    console.log("Write completed")
+                  }).catch(function (error) {
+                    res.status(200).send(error);
+                  });
+
                 });
 
               });
+
             }
+
           });
 
           res.status(200).send('ok:' + snapshot.numChildren());
@@ -199,5 +227,52 @@ const getStatusColors = () => {
 const getNextReservation = (lotKey, currentReservationKey, currentServerDateTime) => {
   return admin.database().ref('/reservations/' + lotKey).orderByChild('start').startAt(currentServerDateTime).limitToFirst(2).once('value').then(snap => {
     return snap.val();
+    //SHB note: will check later if the ff will matter:
+    //01/01/2018 - Hold Expires
+    //01/10/2018 - Reservation Starts
+    //01/02 - 09,2018 - Available --- also as current date = 01/03/2018
   });
+}
+
+const getMapLotStatus = (mapLot, level) => {
+  if (level) {
+    return admin.database().ref('/lots').orderByKey('map_lot').equalTo(mapLot).limitToFirst(5).once('value').then(snap => {
+      if (snap.exists()) {
+        var winningValStat = 0;
+        snap.forEach(element => {
+          var valStat = 0;
+          var stat = element.val().status;
+          if (stat) {
+            if (stat === 'available') valStat = 5;
+            else if (stat === 'hold') valStat = 4;
+            else if (stat === 'reserved') valStat = 3;
+            else if (stat === 'soldlacking') valStat = 2;
+            else if (stat === 'sold') valStat = 1;
+            else valStat = 0; //notyetavailable
+          }
+          if (valStat > winningValStat) {
+            winningValStat = valStat;
+          }
+        });
+
+        if (winningValStat == 5) return Promise.resolve('available'); 
+        else if (winningValStat == 4) return Promise.resolve('hold'); 
+        else if (winningValStat == 3) return Promise.resolve('reserved'); 
+        else if (winningValStat == 2) return Promise.resolve('soldlacking'); 
+        else if (winningValStat == 1) return Promise.resolve('sold'); 
+        else return Promise.resolve('notyetavailable');
+
+      }
+      else {
+        return Promise.resolve('notyetavailable');
+      }
+    }).catch(function (error) {
+      return Promise.resolve('notyetavailable');
+    });
+  }
+  else {
+    return Promise.resolve(null);
+  }
+
+
 }
