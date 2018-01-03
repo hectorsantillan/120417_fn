@@ -2,124 +2,40 @@
 
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
-const cors = require('cors')({ origin: true });
+// const cors = require('cors')({ origin: true });
 admin.initializeApp(functions.config().firebase);
 
 const ref = admin.database().ref();
 
-exports.update_lotDetails_OnApplication_OnNewChange = functions.https.onRequest((req, res) => {
-  ref.child('applications').once('value').then(snapshot => {
-    snapshot.forEach(element => {
-      var lot = element.val().lot;
-      if (lot) {
-        getLotDetails(lot).then(tokens => {
-          element.ref.update({ lotdetails: tokens });
-        });
-      }
-      else {
-        element.ref.update({ lotdetails: '' });
-      }
-    });
-    res.status(200).send('lot data updates: ok');
-  }).catch(reason => {
-    res.status(200).send('lot Data Updates: ' + reason);
-  });
-});
-
-exports.update_agentdetails_OnApplication_OnNewChange = functions.https.onRequest((req, res) => {
-  ref.child('applications').once('value').then(snapshot => {
-    snapshot.forEach(element => {
-      var agent = element.val().agent;
-      if (agent) {
-        getAgentDetails(agent).then(tokens => {
-          element.ref.update({ agentdetails: tokens });
-        });
-      }
-      else {
-        element.ref.update({ agentdetails: '' });
-      }
-    });
-    res.status(200).send('agent data updates: ok');
-  }).catch(reason => {
-    res.status(200).send('agent Data Updates: ' + reason);
-  });
-});
-
-exports.update_buyerdetails_OnApplication_OnNewChange = functions.https.onRequest((req, res) => {
-  ref.child('applications').once('value').then(snapshot => {
-    snapshot.forEach(element => {
-      var buyer = element.val().buyer;
-      if (buyer) {
-        getBuyerDetails(buyer).then(tokens => {
-          element.ref.update({ buyerdetails: tokens });
-        });
-      }
-      else {
-        element.ref.update({ buyerdetails: '' });
-      }
-    });
-    res.status(200).send('buyer data updates: ok');
-  }).catch(reason => {
-    res.status(200).send('buyer Data Updates: ' + reason);
-  });
-});
-
-exports.getServerCurrentDateTime = functions.https.onRequest((req, res) => {
-  var currentdatetime = new Date();
-  res.status(200).send(currentdatetime);
-
-});
-
-
-exports.applications = functions.https.onRequest((req, res) => {
-  cors(req, res, () => {
-    // res.status(200).send({test: 'Testing functions'});
-    ref.child('lots').once('value').then(snapshot => {
-      // res.status(200).send(snapshot.JSON());
-
-      var arr = [];
-
-      snapshot.forEach(element => {
-        arr.push(element);
-      });
-
-      res.status(200).send(arr);
-
-    }).catch(reason => {
-      res.status(200).send(reason);
-    });
-  });
-});
-
 exports.updateBlocksMapRenderDetails = functions.https.onRequest((req, res) => {
   ref.child('blocks').once('value').then(snapshot => {
-    // .orderByChild('maprenderdetailsupdate').equalTo(1).limitToFirst(100)
+    if (snapshot.exists()) {
+      getStatusColors().then(statusColors => {
+        snapshot.forEach(element => {
+          var mapRenderDetails = {
+            stroke_color: (typeof (statusColors[element.val().type]) != 'undefined' ? statusColors[element.val().type].stroke_color : 'white'),
+            bg_color: (typeof (statusColors[element.val().type]) != 'undefined' ? statusColors[element.val().type].bg_color : 'gray'),
+            fore_color: (typeof (statusColors[element.val().type]) != 'undefined' ? statusColors[element.val().type].fore_color : 'white'),
+            type_name: (typeof (statusColors[element.val().type]) != 'undefined' ? statusColors[element.val().type].name : '')
+          };
 
-    getStatusColors().then(statusColors => {
+          element.ref.update({
+            partname: ('Block ' + element.val().block + ' - Part ' + element.val().block),
+            maprenderdetails: mapRenderDetails,
+            maprenderdetailsupdate: 2
+          });
 
-      snapshot.forEach(element => {
-
-        var mapRenderDetails = {
-          stroke_color: (typeof (statusColors[element.val().type]) != 'undefined' ? statusColors[element.val().type].stroke_color : 'white'),
-          bg_color: (typeof (statusColors[element.val().type]) != 'undefined' ? statusColors[element.val().type].bg_color : 'gray'),
-          fore_color: (typeof (statusColors[element.val().type]) != 'undefined' ? statusColors[element.val().type].fore_color : 'white'),
-          type_name: (typeof (statusColors[element.val().type]) != 'undefined' ? statusColors[element.val().type].name : '')
-        };
-
-        element.ref.update({
-          partname: ('Block ' + element.val().block + ' - Part ' + element.val().block),
-          maprenderdetails: mapRenderDetails,
-          maprenderdetailsupdate: 2
         });
 
+        res.status(200).send('ok:' + snapshot.numChildren());
+
+      }).catch(reason => {
+        res.status(200).send('Map Render Details Updates in status color: ' + reason);
       });
-
-      res.status(200).send('ok:' + snapshot.numChildren());
-
-    }).catch(reason => {
-      res.status(200).send('Map Render Details Updates in status color: ' + reason);
-    });
-
+    }
+    else {
+      res.status(200).send('Map Render Details Updates in status color: snapshot null');
+    }
 
   }).catch(reason => {
     res.status(200).send('Map Render Details Updates: ' + reason);
@@ -129,36 +45,37 @@ exports.updateBlocksMapRenderDetails = functions.https.onRequest((req, res) => {
 
 exports.updateLotsMapRenderDetails = functions.https.onRequest((req, res) => {
   ref.child('lots').once('value').then(snapshot => {
-    // .orderByChild('maprenderdetailsupdate').equalTo(1).limitToFirst(100)
+    if (snapshot.exists()) {
+      getStatusColors().then(statusColors => {
+        snapshot.forEach(element => {
+          var mapRenderDetails = {
+            designation_name: (typeof (statusColors[element.val().designation]) != 'undefined' ? statusColors[element.val().designation].name : ''),
+            stroke_color: (typeof (statusColors[element.val().designation]) != 'undefined' ? statusColors[element.val().designation].stroke_color : 'white'),
+            bg_color: (typeof (statusColors[element.val().status]) != 'undefined' ? statusColors[element.val().status].bg_color : 'gray'),
+            fore_color: (typeof (statusColors[element.val().status]) != 'undefined' ? statusColors[element.val().status].fore_color : 'white'),
+            status_name: (typeof (statusColors[element.val().status]) != 'undefined' ? statusColors[element.val().status].name : ''),
+            type_name: (typeof (statusColors[element.val().type]) != 'undefined' ? statusColors[element.val().type].name : ''),
+            type_bg_color: (typeof (statusColors[element.val().type]) != 'undefined' ? statusColors[element.val().type].bg_color : ''),
+            type_fore_color: (typeof (statusColors[element.val().type]) != 'undefined' ? statusColors[element.val().type].fore_color : '')
+          };
 
-    getStatusColors().then(statusColors => {
+          element.ref.update({
+            maprenderdetails: mapRenderDetails,
+            maprenderdetailsupdate: 2
+          });
 
-      snapshot.forEach(element => {
-
-        var mapRenderDetails = {
-          designation_name: (typeof (statusColors[element.val().designation]) != 'undefined' ? statusColors[element.val().designation].name : ''),
-          stroke_color: (typeof (statusColors[element.val().designation]) != 'undefined' ? statusColors[element.val().designation].stroke_color : 'white'),
-          bg_color: (typeof (statusColors[element.val().status]) != 'undefined' ? statusColors[element.val().status].bg_color : 'gray'),
-          fore_color: (typeof (statusColors[element.val().status]) != 'undefined' ? statusColors[element.val().status].fore_color : 'white'),
-          status_name: (typeof (statusColors[element.val().status]) != 'undefined' ? statusColors[element.val().status].name : ''),
-          type_name: (typeof (statusColors[element.val().type]) != 'undefined' ? statusColors[element.val().type].name : ''),
-          type_bg_color: (typeof (statusColors[element.val().type]) != 'undefined' ? statusColors[element.val().type].bg_color : ''),
-          type_fore_color: (typeof (statusColors[element.val().type]) != 'undefined' ? statusColors[element.val().type].fore_color : '')
-        };
-
-        element.ref.update({
-          maprenderdetails: mapRenderDetails,
-          maprenderdetailsupdate: 2
         });
 
+        res.status(200).send('ok:' + snapshot.numChildren());
+
+      }).catch(reason => {
+        res.status(200).send('Map Render Details Updates in status color: ' + reason);
       });
 
-      res.status(200).send('ok:' + snapshot.numChildren());
-
-    }).catch(reason => {
-      res.status(200).send('Map Render Details Updates in status color: ' + reason);
-    });
-
+    }
+    else {
+      res.status(200).send('Map Render Details Updates in status color: snapshot null');
+    }
 
   }).catch(reason => {
     res.status(200).send('Map Render Details Updates: ' + reason);
@@ -166,62 +83,112 @@ exports.updateLotsMapRenderDetails = functions.https.onRequest((req, res) => {
 
 });
 
-exports.setupMapRenderDetailsFirst = functions.https.onRequest((req, res) => {
-  ref.child('lots').limitToFirst(300).once('value').then(snapshot => {
-    snapshot.forEach(element => {
+exports.fiveminuteReset = functions.https.onRequest((req, res) => {
+  // var serverDateTime = new Date(admin.database.ServerValue.TIMESTAMP);
+  var d1 = new Date();
+  var xdate = new Date(d1);
+  var sdate = new Date(d1);
+  xdate.setHours(d1.getHours() - 48); //less 24hours
+  sdate.setHours(d1.getHours() + 8); //manila +8 offset from UTC
 
-      // var mapRenderDetails = {
-      //   bg_color: '',
-      //   stroke_color: '',
-      //   fore_color: '',
-      //   designation_name: '',
-      //   status_name: '',
-      //   type_name: ''
-      // };
+  var computedStartDateTimeNow = xdate.getFullYear() + "-" + ("0" + (xdate.getMonth() + 1)).slice(-2) + "-" + ("0" + xdate.getDate()).slice(-2)
+    + "T" + ("0" + (xdate.getHours())).slice(-2) + ":" + ("0" + xdate.getMinutes()).slice(-2);
 
-      // maprenderdetails: mapRenderDetails,
+  var computedDateTimeNow = sdate.getFullYear() + "-" + ("0" + (sdate.getMonth() + 1)).slice(-2) + "-" + ("0" + sdate.getDate()).slice(-2)
+    + "T" + ("0" + (sdate.getHours())).slice(-2) + ":" + ("0" + sdate.getMinutes()).slice(-2);
 
-      element.ref.update({
-        maprenderdetailsupdate: 1
+  ref.child('lots').orderByChild('reservationdetails/expiry').startAt(computedStartDateTimeNow).endAt(computedDateTimeNow).once('value').then(snapshot => {
+    if (snapshot.exists()) {
+
+      getStatusColors().then(statusColors => {
+        if (statusColors) {
+          snapshot.forEach(element => {
+            if (element.val().reservationdetails.expiry) {
+              getNextReservation(element.key, element.val().reservation, element.val().reservationdetails.expiry).then(tokens => {
+                var updatePathsAtOnce = {};
+                if (tokens) {
+
+                  var keys = Object.keys(tokens);
+                  var previousDate;
+                  var key = '';
+
+                  keys.forEach(ckey => {
+                    //contain next
+                    //check if next reservation is also expired
+                    var kxdate = new Date(tokens[ckey].expiry);
+                    if (tokens[ckey].expiry) {
+                      if (kxdate > sdate) {
+                        if (previousDate) {
+                          if (kxdate < previousDate) {
+                            //if current expiry date is greater than previous evaluated expiry
+                            key = ckey;
+                          }
+                        }
+                        else {
+                          key = ckey;
+                        }
+
+                        previousDate = kxdate;
+                      }
+                    }
+                  });
+
+                  if (key) {
+                    updatePathsAtOnce['/reservations/' + element.key + '/' + element.val().reservation + '/iscurrent'] = false;
+                    updatePathsAtOnce['/reservations/' + element.key + '/' + element.val().reservation + '/isexpired'] = true;
+                    updatePathsAtOnce['/reservations/' + element.key + '/' + key + '/iscurrent'] = true;
+                    updatePathsAtOnce['/reservations/' + element.key + '/' + key + '/isexpired'] = false;
+                    tokens[key].iscurrent = true;
+                    tokens[key].isxpired = false;
+                    updatePathsAtOnce['/lots/' + element.key + '/reservation'] = key.toString();
+                    updatePathsAtOnce['/lots/' + element.key + '/reservationdetails'] = tokens[key];
+                    updatePathsAtOnce['/lots/' + element.key + '/status'] = tokens[key].type;
+                    updatePathsAtOnce['/lots/' + element.key + '/maprenderdetails/bg_color'] = statusColors[tokens[key].type].bg_color;
+                    updatePathsAtOnce['/lots/' + element.key + '/maprenderdetails/fore_color'] = statusColors[tokens[key].type].fore_color;
+                    updatePathsAtOnce['/lots/' + element.key + '/maprenderdetails/status_name'] = statusColors[tokens[key].type].name;
+                  }
+                }
+                else {
+                  //no next
+                  updatePathsAtOnce['/reservations/' + element.key + '/' + element.val().reservation + '/iscurrent'] = false;
+                  updatePathsAtOnce['/reservations/' + element.key + '/' + element.val().reservation + '/isexpired'] = true;
+                  updatePathsAtOnce['/lots/' + element.key + '/reservation'] = '';
+                  updatePathsAtOnce['/lots/' + element.key + '/reservationdetails'] = '';
+                  updatePathsAtOnce['/lots/' + element.key + '/status'] = 'available';
+                  updatePathsAtOnce['/lots/' + element.key + '/maprenderdetails/bg_color'] = statusColors['available'].bg_color;
+                  updatePathsAtOnce['/lots/' + element.key + '/maprenderdetails/fore_color'] = statusColors['available'].fore_color;
+                  updatePathsAtOnce['/lots/' + element.key + '/maprenderdetails/status_name'] = statusColors['available'].name;
+                }
+
+                ref.update(updatePathsAtOnce).then(function () {
+                  console.log("Write completed")
+                }).catch(function (error) {
+                  res.status(200).send(error);
+                });
+
+              });
+            }
+          });
+
+          res.status(200).send('ok:' + snapshot.numChildren());
+
+        }
+        else {
+          res.status(505).send('status colors not defined');
+        }
+
+      }).catch(reason => {
+        res.status(505).send('fiveminuteReset error: ' + reason);
       });
-    });
-
-    res.status(200).send('ok:' + snapshot.numChildren());
-
+    }
+    else {
+      res.status(505).send('snapshot null');
+    }
+    // res.status(200).send('total is ' + snapshot.numChildren());
   }).catch(reason => {
-    res.status(200).send('Map Render Details setup: ' + reason);
+    res.status(505).send('fiveminuteReset error: ' + reason);
   });
-
 });
-
-
-exports.countLots = functions.https.onRequest((req, res) => {
-  ref.child('lots').orderByChild('maprenderdetailsupdate').equalTo(1).once('value').then(snapshot => {
-    res.status(200).send('total is ' + snapshot.numChildren());
-  }).catch(reason => {
-    res.status(200).send('count Render Details Updates: ' + reason);
-
-  });
-
-});
-
-const getLotDetails = (lot) => {
-  return admin.database().ref('/lots/' + lot).once('value').then(snap => {
-    return snap.val();
-  });
-}
-
-const getAgentDetails = (agent) => {
-  return admin.database().ref('/agents/' + agent).once('value').then(snap => {
-    return snap.val();
-  });
-}
-
-const getBuyerDetails = (buyer) => {
-  return admin.database().ref('/buyers/' + buyer).once('value').then(snap => {
-    return snap.val();
-  });
-}
 
 const getStatusColors = () => {
   return admin.database().ref('/statuscolor').once('value').then(snap => {
@@ -229,3 +196,8 @@ const getStatusColors = () => {
   });
 }
 
+const getNextReservation = (lotKey, currentReservationKey, currentServerDateTime) => {
+  return admin.database().ref('/reservations/' + lotKey).orderByChild('start').startAt(currentServerDateTime).limitToFirst(2).once('value').then(snap => {
+    return snap.val();
+  });
+}
