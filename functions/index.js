@@ -187,7 +187,7 @@ exports.fiveminuteReset = functions.https.onRequest((req, res) => {
                   ref.update(updatePathsAtOnce).then(function () {
                     console.log("Write completed")
                   }).catch(function (error) {
-                    res.status(200).send(error);
+                    console.log(error)
                   });
 
                 });
@@ -210,12 +210,50 @@ exports.fiveminuteReset = functions.https.onRequest((req, res) => {
       });
     }
     else {
-      res.status(505).send('snapshot null');
+      res.status(200).send('snapshot null');
     }
     // res.status(200).send('total is ' + snapshot.numChildren());
   }).catch(reason => {
     res.status(505).send('fiveminuteReset error: ' + reason);
   });
+});
+
+exports.updateBlockToAvailable = functions.https.onRequest((req, res) => {
+  ref.child('lots').orderByChild('block').equalTo('2').once('value').then(snapshot => {
+    if (snapshot.exists()) {
+      getStatusColors().then(statusColors => {
+        snapshot.forEach(element => {
+          if (element.val().status === 'notyetavailable') {
+            var myupdate = {};
+            myupdate['/lots/'+element.key+'/status'] = 'available';
+            myupdate['/lots/'+element.key+'/maprenderdetails/bg_color'] = (typeof (statusColors['available']) != 'undefined' ? statusColors['available'].bg_color : 'gray');
+            myupdate['/lots/'+element.key+'/maprenderdetails/fore_color'] = (typeof (statusColors['available']) != 'undefined' ? statusColors['available'].fore_color : 'white');
+            myupdate['/lots/'+element.key+'/maprenderdetails/status_name'] = (typeof (statusColors['available']) != 'undefined' ? statusColors['available'].name : '');
+
+            ref.update(myupdate).then(function () {
+              console.log("Write completed")
+            }).catch(function (error) {
+              console.log(error)
+            });
+          }
+
+        });
+
+        res.status(200).send('ok:' + snapshot.numChildren());
+
+      }).catch(reason => {
+        res.status(200).send('Map Render Details Updates in status color: ' + reason);
+      });
+
+    }
+    else {
+      res.status(200).send('Map Render Details Updates in status color: snapshot null');
+    }
+
+  }).catch(reason => {
+    res.status(200).send('Map Render Details Updates: ' + reason);
+  });
+
 });
 
 const getStatusColors = () => {
@@ -255,11 +293,11 @@ const getMapLotStatus = (mapLot, level) => {
           }
         });
 
-        if (winningValStat == 5) return Promise.resolve('available'); 
-        else if (winningValStat == 4) return Promise.resolve('hold'); 
-        else if (winningValStat == 3) return Promise.resolve('reserved'); 
-        else if (winningValStat == 2) return Promise.resolve('soldlacking'); 
-        else if (winningValStat == 1) return Promise.resolve('sold'); 
+        if (winningValStat == 5) return Promise.resolve('available');
+        else if (winningValStat == 4) return Promise.resolve('hold');
+        else if (winningValStat == 3) return Promise.resolve('reserved');
+        else if (winningValStat == 2) return Promise.resolve('soldlacking');
+        else if (winningValStat == 1) return Promise.resolve('sold');
         else return Promise.resolve('notyetavailable');
 
       }
