@@ -1,5 +1,6 @@
 {
   "projects": {
-    "default": "hpmg-56df3"
+    "default": "hpmg-56df3",
+    "live": "hope-live-180101"
   }
 }
