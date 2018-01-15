@@ -142,156 +142,270 @@ exports.fiveminuteReset = functions.https.onRequest((req, res) => {
   });
 });
 
-exports.reservationReports_status = functions.database.ref('/lots/{uid}/status')
+exports.reservationReports = functions.database.ref('/lots/{uid}')
   .onWrite(event => {
-    event.data.ref.parent.once("value").then(parentValue => {
+    //get previous and new data
+    //get server time +8
+    //get ActivityReport current value
+    //compare previous date if today, if not today no update to be set, if today: update the ActivityReport Current value
+    //compare current date if today, if not today no update to be set, if today: update the ActivityReport Current value
 
-      const prevData = event.data.previous.val();
-      const newData = event.data.val();
-      // console.log(parentValue.val());
+    const previousData = event.data.previous.val();
+    const newData = event.data.val();
 
-      var serverDateTime = new Date();
-      var serverDateTimePH = new Date(serverDateTime);
-      serverDateTimePH.setHours(serverDateTime.getHours() + 8); //manila +8 offset from UTC      
+    var serverDateTime = new Date();
+    var serverDateTimePH = new Date(serverDateTime);
+    serverDateTimePH.setHours(serverDateTime.getHours() + 8);
+    var serverDatePH_String = serverDateTimePH.getFullYear() + "-" + ("0" + (serverDateTimePH.getMonth() + 1)).slice(-2) + "-" + ("0" + serverDateTimePH.getDate()).slice(-2) + "T00:00";
+    var serverDatePH = new Date(serverDatePH_String);
 
-      //remove time
-      var serverDatePH_String = serverDateTimePH.getFullYear() + "-" + ("0" + (serverDateTimePH.getMonth() + 1)).slice(-2) + "-" + ("0" + serverDateTimePH.getDate()).slice(-2) + "T00:00";
-      var serverDatePH = new Date(serverDatePH_String);
+    var updatePathsAtOnce = {};
 
-      //get start date
-      var tempDate = new Date(parentValue.val().reservationdetails.start);
-      var tempDate_String = tempDate.getFullYear() + "-" + ("0" + (tempDate.getMonth() + 1)).slice(-2) + "-" + ("0" + tempDate.getDate()).slice(-2) + "T00:00";
-      var sDate = new Date(tempDate_String);
+    // admin.database().ref('/reports/lotstatus/Today').once('value').then(activityReport => {
+    // }).catch(reason => {
+    //   console.log('error on ActivityReport: ' + reason);
+    //   return null;
+    // });
 
-      //Today
-      if (serverDatePH.getTime() === sDate.getTime()) {
+    if (previousData.reservationdetails) {
+      if (previousData.reservationdetails.start) {
+        var previousDataStart = new Date(previousData.reservationdetails.start);
+        var previousDataStart_noTimeString = previousDataStart.getFullYear() + "-" + ("0" + (previousDataStart.getMonth() + 1)).slice(-2) + "-" + ("0" + previousDataStart.getDate()).slice(-2) + "T00:00";
+        var previousDataStart_noTimeDate = new Date(previousDataStart_noTimeString);
+        if (serverDatePH.getTime() === previousDataStart_noTimeDate.getTime()) {
+          //get ActivityReport Current Value
+          var previousDataStatus = previousData.status;
+          // var activityReportValue = 0;
+          // if (activityReport.exists()) {
+          //   var statVal = activityReport.val()[previousData.type];
+          //   if (statVal) {
+          //     if (previousDataStatus == 'hold' && statVal.hold) activityReportValue = statVal.hold;
+          //     if (previousDataStatus == 'reserved' && statVal.reserved) activityReportValue = statVal.reserved;
+          //     if (previousDataStatus == 'sold' && statVal.sold) activityReportValue = statVal.sold;
+          //   }
+          // }
+          if (previousDataStatus) {
 
-        admin.database().ref('/reports/lotstatus/Today').once('value').then(today => {
-
-          var prevValue_Qty = 0;
-          var currValue_Qty = 0;
-
-          if (today.exists()) {
-            var statVal = today.val()[parentValue.val().type];
-            if (statVal) {
-              if (prevData == 'hold' && statVal.hold) prevValue_Qty = statVal.hold;
-              if (prevData == 'reserved' && statVal.reserved) prevValue_Qty = statVal.reserved;
-              if (prevData == 'sold' && statVal.sold) prevValue_Qty = statVal.sold;
-
-              if (newData == 'hold' && statVal.hold) currValue_Qty = statVal.hold;
-              if (newData == 'reserved' && statVal.reserved) currValue_Qty = statVal.reserved;
-              if (newData == 'sold' && statVal.sold) currValue_Qty = statVal.sold;
+            if (previousDataStatus != 'notyetavailable' && previousDataStatus != 'available') {
+              // updatePathsAtOnce['/reports/lotstatus/Today/' + previousData.type + '/' + previousDataStatus] = activityReportValue - 1;
+              admin.database().ref('/reports/lotstatus/Today/' + previousData.type + '/' + previousDataStatus).transaction(qty => qty = qty - 1).then(()=>{});
+              console.log('less:ok');
             }
+
           }
 
-          var updatePathsAtOnce = {};
-          if (prevData != 'notyetavailable' && prevData != 'available') updatePathsAtOnce['/reports/lotstatus/Today/' + parentValue.val().type + '/' + prevData] = prevValue_Qty - 1;
-          if (newData != 'notyetavailable' && newData != 'available') updatePathsAtOnce['/reports/lotstatus/Today/' + parentValue.val().type + '/' + newData] = currValue_Qty + 1;
-
-          ref.update(updatePathsAtOnce).then(function () {
-            console.log("Write completed");
-          }).catch(function (error) {
-            console.log(event.params.uid + ':' + error);
-          });
-
-        });
-
+        }
       }
-      else {
-        return null;
+    }
+
+
+    if (newData.reservationdetails) {
+      if (newData.reservationdetails.start) {
+        var newDataStart = new Date(newData.reservationdetails.start);
+        var newDataStart_noTimeString = newDataStart.getFullYear() + "-" + ("0" + (newDataStart.getMonth() + 1)).slice(-2) + "-" + ("0" + newDataStart.getDate()).slice(-2) + "T00:00";
+        var newDataStart_noTimeDate = new Date(newDataStart_noTimeString);
+        if (serverDatePH.getTime() === newDataStart_noTimeDate.getTime()) {
+          //get ActivityReport Current Value
+          var newDataStatus = newData.status;
+          // var activityReportValue = 0;
+          // if (activityReport.exists()) {
+          //   var statVal = activityReport.val()[newData.type];
+          //   if (statVal) {
+          //     if (newDataStatus == 'hold' && statVal.hold) activityReportValue = statVal.hold;
+          //     if (newDataStatus == 'reserved' && statVal.reserved) activityReportValue = statVal.reserved;
+          //     if (newDataStatus == 'sold' && statVal.sold) activityReportValue = statVal.sold;
+          //   }
+          // }
+          if (newDataStatus) {
+
+            if (newDataStatus != 'notyetavailable' && newDataStatus != 'available') {
+              // updatePathsAtOnce['/reports/lotstatus/Today/' + newData.type + '/' + newDataStatus] = activityReportValue + 1;
+              admin.database().ref('/reports/lotstatus/Today/' + newData.type + '/' + newDataStatus).transaction(qty => qty = qty + 1).then(()=>{});
+              console.log('add:ok');
+            }
+
+          }
+
+        }
       }
-
-
-    });
+    }
 
     return null;
+    // if (Object.keys(updatePathsAtOnce).length > 0) {
+    //   ref.update(updatePathsAtOnce).then(function () {
+    //     console.log("Write completed");
+    //   }).catch(function (error) {
+    //     console.log(event.params.uid + ':' + error);
+    //   });
+    // }
+    // else {
+    //   console.log("No Write completed");
+    //   return null;
+    // }
+
+
 
   });
 
-exports.reservationReports_start = functions.database.ref('/lots/{uid}/reservationdetails/start')
-  .onWrite(event => {
-    event.data.ref.parent.parent.once("value").then(parentValue => {
 
-      const prevData = event.data.previous.val();
-      const newData = event.data.val();
-      // console.log(parentValue.val());
 
-      admin.database().ref('/reports/lotstatus/Today').once('value').then(today => {
 
-        var prevValue_Qty = 0;
-        var currValue_Qty = 0;
 
-        if (today.exists()) {
-          var statVal = today.val()[parentValue.val().type];
-          if (statVal) {
-            if (parentValue.val().status) {
-              var sType = parentValue.val().status;
-              if (sType) {
-                if (sType == 'hold' && statVal.hold) prevValue_Qty = statVal.hold;
-                if (sType == 'reserved' && statVal.reserved) prevValue_Qty = statVal.reserved;
-                if (sType == 'sold' && statVal.sold) prevValue_Qty = statVal.sold;
 
-                if (sType == 'hold' && statVal.hold) currValue_Qty = statVal.hold;
-                if (sType == 'reserved' && statVal.reserved) currValue_Qty = statVal.reserved;
-                if (sType == 'sold' && statVal.sold) currValue_Qty = statVal.sold;
-              }
-            }
-          }
-        }
 
-        var serverDateTime = new Date();
-        var serverDateTimePH = new Date(serverDateTime);
-        serverDateTimePH.setHours(serverDateTime.getHours() + 8); //manila +8 offset from UTC      
+// exports.reservationReports_status = functions.database.ref('/lots/{uid}/status')
+//   .onUpdate(event => {
+//     event.data.ref.parent.once("value").then(parentValue => {
 
-        //remove time
-        var serverDatePH_String = serverDateTimePH.getFullYear() + "-" + ("0" + (serverDateTimePH.getMonth() + 1)).slice(-2) + "-" + ("0" + serverDateTimePH.getDate()).slice(-2) + "T00:00";
-        var serverDatePH = new Date(serverDatePH_String);
+//       const prevData = event.data.previous.val();
+//       const newData = event.data.val();
+//       // console.log(parentValue.val());
 
-        //get prev date
-        var ptempDate = new Date(prevData);
-        var ptempDate_String = ptempDate.getFullYear() + "-" + ("0" + (ptempDate.getMonth() + 1)).slice(-2) + "-" + ("0" + ptempDate.getDate()).slice(-2) + "T00:00";
-        var psDate = new Date(ptempDate_String);
+//       var serverDateTime = new Date();
+//       var serverDateTimePH = new Date(serverDateTime);
+//       serverDateTimePH.setHours(serverDateTime.getHours() + 8); //manila +8 offset from UTC      
 
-        //get curr date
-        var ctempDate = new Date(newData);
-        var ctempDate_String = ctempDate.getFullYear() + "-" + ("0" + (ctempDate.getMonth() + 1)).slice(-2) + "-" + ("0" + ctempDate.getDate()).slice(-2) + "T00:00";
-        var csDate = new Date(ctempDate_String);
+//       //remove time
+//       var serverDatePH_String = serverDateTimePH.getFullYear() + "-" + ("0" + (serverDateTimePH.getMonth() + 1)).slice(-2) + "-" + ("0" + serverDateTimePH.getDate()).slice(-2) + "T00:00";
+//       var serverDatePH = new Date(serverDatePH_String);
 
-        // console.log(prevData + ' ' + newData);
+//       //get start date
+//       var tempDate = new Date(parentValue.val().reservationdetails.start);
+//       var tempDate_String = tempDate.getFullYear() + "-" + ("0" + (tempDate.getMonth() + 1)).slice(-2) + "-" + ("0" + tempDate.getDate()).slice(-2) + "T00:00";
+//       var sDate = new Date(tempDate_String);
 
-        //Today
-        var updatePathsAtOnce = {};
+//       //Today
+//       if (serverDatePH.getTime() === sDate.getTime()) {
 
-        if (serverDatePH.getTime() === psDate.getTime()) {
-          if (parentValue.val().status && parentValue.val().type) {
-            if (parentValue.val().status != 'notyetavailable' && parentValue.val().status != 'available') updatePathsAtOnce['/reports/lotstatus/Today/' + parentValue.val().type + '/' + parentValue.val().status] = prevValue_Qty - 1;
-          }
-        }
+//         admin.database().ref('/reports/lotstatus/Today').once('value').then(today => {
 
-        if (serverDatePH.getTime() === csDate.getTime()) {
-          if (parentValue.val().status && parentValue.val().type) {
-            if (parentValue.val().status != 'notyetavailable' && parentValue.val().status != 'available') updatePathsAtOnce['/reports/lotstatus/Today/' + parentValue.val().type + '/' + parentValue.val().status] = currValue_Qty + 1;
-          }
-        }
+//           var prevValue_Qty = 0;
+//           var currValue_Qty = 0;
 
-        if (Object.keys(updatePathsAtOnce).length > 0) {
+//           if (today.exists()) {
+//             var statVal = today.val()[parentValue.val().type];
+//             if (statVal) {
+//               if (prevData == 'hold' && statVal.hold) prevValue_Qty = statVal.hold;
+//               if (prevData == 'reserved' && statVal.reserved) prevValue_Qty = statVal.reserved;
+//               if (prevData == 'sold' && statVal.sold) prevValue_Qty = statVal.sold;
 
-          ref.update(updatePathsAtOnce).then(function () {
-            console.log("Write completed");
-          }).catch(function (error) {
-            console.log(event.params.uid + ':' + error);
-          });
-        }
-        else {
-          return null;
-        }
+//               if (newData == 'hold' && statVal.hold) currValue_Qty = statVal.hold;
+//               if (newData == 'reserved' && statVal.reserved) currValue_Qty = statVal.reserved;
+//               if (newData == 'sold' && statVal.sold) currValue_Qty = statVal.sold;
+//             }
+//           }
 
-      });
+//           var updatePathsAtOnce = {};
+//           if (prevData != 'notyetavailable' && prevData != 'available' && prevData) updatePathsAtOnce['/reports/lotstatus/Today/' + parentValue.val().type + '/' + prevData] = prevValue_Qty - 1;
+//           if (newData != 'notyetavailable' && newData != 'available' && newData) updatePathsAtOnce['/reports/lotstatus/Today/' + parentValue.val().type + '/' + newData] = currValue_Qty + 1;
 
-    });
+//           ref.update(updatePathsAtOnce).then(function () {
+//             console.log("Write completed");
+//           }).catch(function (error) {
+//             console.log(event.params.uid + ':' + error);
+//           });
 
-    return null;
-  });
+//         });
+
+//       }
+//       else {
+//         return null;
+//       }
+
+
+//     });
+
+//     return null;
+
+//   });
+
+
+// exports.reservationReports_start = functions.database.ref('/lots/{uid}/reservationdetails/start')
+//   .onWrite(event => {
+//     event.data.ref.parent.parent.once("value").then(parentValue => {
+
+//       const prevData = event.data.previous.val();
+//       const newData = event.data.val();
+//       // console.log(parentValue.val());
+
+//       admin.database().ref('/reports/lotstatus/Today').once('value').then(today => {
+
+//         var prevValue_Qty = 0;
+//         var currValue_Qty = 0;
+
+//         if (today.exists()) {
+//           var statVal = today.val()[parentValue.val().type];
+//           if (statVal) {
+//             if (parentValue.val().status) {
+//               var sType = parentValue.val().status;
+//               if (sType) {
+//                 if (sType == 'hold' && statVal.hold) prevValue_Qty = statVal.hold;
+//                 if (sType == 'reserved' && statVal.reserved) prevValue_Qty = statVal.reserved;
+//                 if (sType == 'sold' && statVal.sold) prevValue_Qty = statVal.sold;
+
+//                 if (sType == 'hold' && statVal.hold) currValue_Qty = statVal.hold;
+//                 if (sType == 'reserved' && statVal.reserved) currValue_Qty = statVal.reserved;
+//                 if (sType == 'sold' && statVal.sold) currValue_Qty = statVal.sold;
+//               }
+//             }
+//           }
+//         }
+
+//         var serverDateTime = new Date();
+//         var serverDateTimePH = new Date(serverDateTime);
+//         serverDateTimePH.setHours(serverDateTime.getHours() + 8); //manila +8 offset from UTC      
+
+//         //remove time
+//         var serverDatePH_String = serverDateTimePH.getFullYear() + "-" + ("0" + (serverDateTimePH.getMonth() + 1)).slice(-2) + "-" + ("0" + serverDateTimePH.getDate()).slice(-2) + "T00:00";
+//         var serverDatePH = new Date(serverDatePH_String);
+
+//         //get prev date
+//         var ptempDate = new Date(prevData);
+//         var ptempDate_String = ptempDate.getFullYear() + "-" + ("0" + (ptempDate.getMonth() + 1)).slice(-2) + "-" + ("0" + ptempDate.getDate()).slice(-2) + "T00:00";
+//         var psDate = new Date(ptempDate_String);
+
+//         //get curr date
+//         var ctempDate = new Date(newData);
+//         var ctempDate_String = ctempDate.getFullYear() + "-" + ("0" + (ctempDate.getMonth() + 1)).slice(-2) + "-" + ("0" + ctempDate.getDate()).slice(-2) + "T00:00";
+//         var csDate = new Date(ctempDate_String);
+
+//         // console.log(prevData + ' ' + newData);
+
+//         //Today
+//         var updatePathsAtOnce = {};
+
+//         if (serverDatePH.getTime() === psDate.getTime()) {
+//           if (parentValue.val().status && parentValue.val().type) {
+//             if (parentValue.val().status != 'notyetavailable' && parentValue.val().status != 'available') updatePathsAtOnce['/reports/lotstatus/Today/' + parentValue.val().type + '/' + parentValue.val().status] = prevValue_Qty - 1;
+//           }
+//         }
+
+//         if (serverDatePH.getTime() === csDate.getTime()) {
+//           if (parentValue.val().status && parentValue.val().type) {
+//             if (parentValue.val().status != 'notyetavailable' && parentValue.val().status != 'available') updatePathsAtOnce['/reports/lotstatus/Today/' + parentValue.val().type + '/' + parentValue.val().status] = currValue_Qty + 1;
+//           }
+//         }
+
+//         if (Object.keys(updatePathsAtOnce).length > 0) {
+
+//           ref.update(updatePathsAtOnce).then(function () {
+//             console.log("Write completed");
+//           }).catch(function (error) {
+//             console.log(event.params.uid + ':' + error);
+//           });
+//         }
+//         else {
+//           return null;
+//         }
+
+//       });
+
+//     });
+
+//     return null;
+//   });
+
+
 
 
 
