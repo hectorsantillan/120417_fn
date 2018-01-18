@@ -188,7 +188,7 @@ exports.reservationReports = functions.database.ref('/lots/{uid}')
 
             if (previousDataStatus != 'notyetavailable' && previousDataStatus != 'available') {
               // updatePathsAtOnce['/reports/lotstatus/Today/' + previousData.type + '/' + previousDataStatus] = activityReportValue - 1;
-              admin.database().ref('/reports/lotstatus/Today/' + previousData.type + '/' + previousDataStatus).transaction(qty => qty = qty - 1).then(()=>{});
+              admin.database().ref('/reports/lotstatus/Today/' + previousData.type + '/' + previousDataStatus).transaction(qty => qty = qty - 1).then(() => { });
               console.log('less:ok');
             }
 
@@ -220,7 +220,7 @@ exports.reservationReports = functions.database.ref('/lots/{uid}')
 
             if (newDataStatus != 'notyetavailable' && newDataStatus != 'available') {
               // updatePathsAtOnce['/reports/lotstatus/Today/' + newData.type + '/' + newDataStatus] = activityReportValue + 1;
-              admin.database().ref('/reports/lotstatus/Today/' + newData.type + '/' + newDataStatus).transaction(qty => qty = qty + 1).then(()=>{});
+              admin.database().ref('/reports/lotstatus/Today/' + newData.type + '/' + newDataStatus).transaction(qty => qty = qty + 1).then(() => { });
               console.log('add:ok');
             }
 
@@ -247,7 +247,89 @@ exports.reservationReports = functions.database.ref('/lots/{uid}')
 
   });
 
+exports.reservationReportsReset = functions.https.onRequest((req, res) => {
+  var updatePathsAtOnce = {};
+  updatePathsAtOnce['/reports/lotstatus/Today'] = {
+    bonechamber: {
+      hold: 0,
+      reserved: 0,
+      sold: 0
+    },
+    cinerarium: {
+      hold: 0,
+      reserved: 0,
+      sold: 0
+    },
+    familylots1: {
+      hold: 0,
+      reserved: 0,
+      sold: 0
+    },
+    familylots2: {
+      hold: 0,
+      reserved: 0,
+      sold: 0
+    },
+    familylots3: {
+      hold: 0,
+      reserved: 0,
+      sold: 0
+    },
+    familylots4: {
+      hold: 0,
+      reserved: 0,
+      sold: 0
+    },
+    familylots5: {
+      hold: 0,
+      reserved: 0,
+      sold: 0
+    },
+    gardenlots1: {
+      hold: 0,
+      reserved: 0,
+      sold: 0
+    },
+    gardenlots2: {
+      hold: 0,
+      reserved: 0,
+      sold: 0
+    },
+    gardenlots3: {
+      hold: 0,
+      reserved: 0,
+      sold: 0
+    },
+    gardenlots4: {
+      hold: 0,
+      reserved: 0,
+      sold: 0
+    },
+    gardenlots5: {
+      hold: 0,
+      reserved: 0,
+      sold: 0
+    },
+    lawnlots: {
+      hold: 0,
+      reserved: 0,
+      sold: 0
+    },
+    wallniche: {
+      hold: 0,
+      reserved: 0,
+      sold: 0
+    }
+  };
+  
+  ref.update(updatePathsAtOnce).then(function () {
+    res.status(200).send("Write completed");
+  }).catch(function (error) {
+    res.status(200).send('error');
+  });
 
+
+});
 
 
 
