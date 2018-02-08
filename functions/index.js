@@ -671,6 +671,474 @@ const getMapLotStatus = (mapLot, level) => {
 }
 
 
+// exports.updateLotStatusToNotYetAvailable = functions.https.onRequest((req, res) => {
+//   ref.child('lots').orderByChild('block').equalTo('57').once('value').then(snapshot => {
+//     if (snapshot.exists()) {
+//       getStatusColors().then(statusColors => {
+//         snapshot.forEach(element => {
+//           if (element.val().status === 'available') {
+//             var myupdate = {};
+//             myupdate['/lots/' + element.key + '/status'] = 'notyetavailable';
+//             myupdate['/lots/' + element.key + '/maprenderdetails/bg_color'] = (typeof (statusColors['notyetavailable']) != 'undefined' ? statusColors['notyetavailable'].bg_color : 'gray');
+//             myupdate['/lots/' + element.key + '/maprenderdetails/fore_color'] = (typeof (statusColors['notyetavailable']) != 'undefined' ? statusColors['notyetavailable'].fore_color : 'white');
+//             myupdate['/lots/' + element.key + '/maprenderdetails/status_name'] = (typeof (statusColors['notyetavailable']) != 'undefined' ? statusColors['notyetavailable'].name : '');
+
+//             ref.update(myupdate).then(function () {
+//               console.log("Write completed")
+//             }).catch(function (error) {
+//               console.log(error)
+//             });
+//           }
+
+//         });
+
+//         res.status(200).send('ok:' + snapshot.numChildren());
+
+//       }).catch(reason => {
+//         res.status(200).send('updateLotStatusToNotYetAvailable: ' + reason);
+//       });
+
+//     }
+//     else {
+//       // res.status(200).send('Map Render Details Updates in status color: snapshot null');
+//       console.log('updateLotStatusToNotYetAvailable, null');
+//     }
+
+//   }).catch(reason => {
+//     res.status(200).send('updateLotStatusToNotYetAvailable: ' + reason);
+//   });
+// });
+
+
+
+// 58,59,60,61,62,63,64,65
+// exports.updateWallNicheDesignation5861 = functions.https.onRequest((req, res) => {
+//   ref.child('lots').orderByChild('block').equalTo('58').once('value').then(snapshot => {
+//     if (snapshot.exists()) {
+//       // getStatusColors().then(statusColors => {
+//         snapshot.forEach(element => {
+//           if (element.val().level === 'a' || element.val().level === 'b') { //premium
+//             var myupdate = {};
+//             myupdate['/lots/' + element.key + '/designation'] = 'premium';
+//             myupdate['/lots/' + element.key + '/maprenderdetails/designation_name'] = 'Premium';
+//             myupdate['/lots/' + element.key + '/maprenderdetails/stroke_color'] = '#000000';
+            
+//             ref.update(myupdate).then(function () {
+//               console.log("Write completed")
+//             }).catch(function (error) {
+//               console.log(error)
+//             });
+//           }
+//           else if (element.val().level === 'c' || element.val().level === 'd') { //special
+//             var myupdate = {};
+//             myupdate['/lots/' + element.key + '/designation'] = 'regular';
+//             myupdate['/lots/' + element.key + '/maprenderdetails/designation_name'] = 'Regular';
+//             myupdate['/lots/' + element.key + '/maprenderdetails/stroke_color'] = '#F5F5F5';
+            
+//             ref.update(myupdate).then(function () {
+//               console.log("Write completed")
+//             }).catch(function (error) {
+//               console.log(error)
+//             });
+//           }          
+
+//         });
+
+//         // res.status(200).send('ok:' + snapshot.numChildren());
+
+//       // }).catch(reason => {
+//       //   res.status(200).send('Map Render Details Updates in status color: ' + reason);
+//       // });
+
+//     }
+//     else {
+//       // res.status(200).send('Map Render Details Updates in status color: snapshot null');
+//       console.log('Map 57, null');
+//     }
+
+//   }).catch(reason => {
+//     res.status(200).send('Map Render Details Updates: ' + reason);
+//   });
+
+//   ref.child('lots').orderByChild('block').equalTo('59').once('value').then(snapshot => {
+//     if (snapshot.exists()) {
+//       // getStatusColors().then(statusColors => {
+//         snapshot.forEach(element => {
+//           if (element.val().level === 'a' || element.val().level === 'b') { //premium
+//             var myupdate = {};
+//             myupdate['/lots/' + element.key + '/designation'] = 'premium';
+//             myupdate['/lots/' + element.key + '/maprenderdetails/designation_name'] = 'Premium';
+//             myupdate['/lots/' + element.key + '/maprenderdetails/stroke_color'] = '#000000';
+            
+//             ref.update(myupdate).then(function () {
+//               console.log("Write completed")
+//             }).catch(function (error) {
+//               console.log(error)
+//             });
+//           }
+//           else if (element.val().level === 'c' || element.val().level === 'd') { //special
+//             var myupdate = {};
+//             myupdate['/lots/' + element.key + '/designation'] = 'regular';
+//             myupdate['/lots/' + element.key + '/maprenderdetails/designation_name'] = 'Regular';
+//             myupdate['/lots/' + element.key + '/maprenderdetails/stroke_color'] = '#F5F5F5';
+            
+//             ref.update(myupdate).then(function () {
+//               console.log("Write completed")
+//             }).catch(function (error) {
+//               console.log(error)
+//             });
+//           }          
+
+//         });
+
+//         // res.status(200).send('ok:' + snapshot.numChildren());
+
+//       // }).catch(reason => {
+//       //   res.status(200).send('Map Render Details Updates in status color: ' + reason);
+//       // });
+
+//     }
+//     else {
+//       // res.status(200).send('Map Render Details Updates in status color: snapshot null');
+//       console.log('Map 57, null');
+//     }
+
+//   }).catch(reason => {
+//     res.status(200).send('Map Render Details Updates: ' + reason);
+//   });
+
+//   ref.child('lots').orderByChild('block').equalTo('60').once('value').then(snapshot => {
+//     if (snapshot.exists()) {
+//       // getStatusColors().then(statusColors => {
+//         snapshot.forEach(element => {
+//           if (element.val().level === 'a' || element.val().level === 'b') { //premium
+//             var myupdate = {};
+//             myupdate['/lots/' + element.key + '/designation'] = 'premium';
+//             myupdate['/lots/' + element.key + '/maprenderdetails/designation_name'] = 'Premium';
+//             myupdate['/lots/' + element.key + '/maprenderdetails/stroke_color'] = '#000000';
+            
+//             ref.update(myupdate).then(function () {
+//               console.log("Write completed")
+//             }).catch(function (error) {
+//               console.log(error)
+//             });
+//           }
+//           else if (element.val().level === 'c' || element.val().level === 'd') { //special
+//             var myupdate = {};
+//             myupdate['/lots/' + element.key + '/designation'] = 'regular';
+//             myupdate['/lots/' + element.key + '/maprenderdetails/designation_name'] = 'Regular';
+//             myupdate['/lots/' + element.key + '/maprenderdetails/stroke_color'] = '#F5F5F5';
+            
+//             ref.update(myupdate).then(function () {
+//               console.log("Write completed")
+//             }).catch(function (error) {
+//               console.log(error)
+//             });
+//           }          
+
+//         });
+
+//         // res.status(200).send('ok:' + snapshot.numChildren());
+
+//       // }).catch(reason => {
+//       //   res.status(200).send('Map Render Details Updates in status color: ' + reason);
+//       // });
+
+//     }
+//     else {
+//       // res.status(200).send('Map Render Details Updates in status color: snapshot null');
+//       console.log('Map 57, null');
+//     }
+
+//   }).catch(reason => {
+//     res.status(200).send('Map Render Details Updates: ' + reason);
+//   });  
+
+//   ref.child('lots').orderByChild('block').equalTo('61').once('value').then(snapshot => {
+//     if (snapshot.exists()) {
+//       // getStatusColors().then(statusColors => {
+//         snapshot.forEach(element => {
+//           if (element.val().level === 'a' || element.val().level === 'b') { //premium
+//             var myupdate = {};
+//             myupdate['/lots/' + element.key + '/designation'] = 'premium';
+//             myupdate['/lots/' + element.key + '/maprenderdetails/designation_name'] = 'Premium';
+//             myupdate['/lots/' + element.key + '/maprenderdetails/stroke_color'] = '#000000';
+            
+//             ref.update(myupdate).then(function () {
+//               console.log("Write completed")
+//             }).catch(function (error) {
+//               console.log(error)
+//             });
+//           }
+//           else if (element.val().level === 'c' || element.val().level === 'd') { //special
+//             var myupdate = {};
+//             myupdate['/lots/' + element.key + '/designation'] = 'regular';
+//             myupdate['/lots/' + element.key + '/maprenderdetails/designation_name'] = 'Regular';
+//             myupdate['/lots/' + element.key + '/maprenderdetails/stroke_color'] = '#F5F5F5';
+            
+//             ref.update(myupdate).then(function () {
+//               console.log("Write completed")
+//             }).catch(function (error) {
+//               console.log(error)
+//             });
+//           }          
+
+//         });
+
+//         res.status(200).send('ok:');
+//         // res.status(200).send('ok:' + snapshot.numChildren());
+
+//       // }).catch(reason => {
+//       //   res.status(200).send('Map Render Details Updates in status color: ' + reason);
+//       // });
+
+//     }
+//     else {
+//       // res.status(200).send('Map Render Details Updates in status color: snapshot null');
+//       console.log('Map 57, null');
+//     }
+
+//   }).catch(reason => {
+//     res.status(200).send('Map Render Details Updates: ' + reason);
+//   });  
+
+ 
+
+// });
+
+// exports.updateWallNicheDesignation6265 = functions.https.onRequest((req, res) => {
+//   ref.child('lots').orderByChild('block').equalTo('62').once('value').then(snapshot => {
+//     if (snapshot.exists()) {
+//       // getStatusColors().then(statusColors => {
+//         snapshot.forEach(element => {
+//           if (element.val().level === 'a' || element.val().level === 'b') { //premium
+//             var myupdate = {};
+//             myupdate['/lots/' + element.key + '/designation'] = 'premium';
+//             myupdate['/lots/' + element.key + '/maprenderdetails/designation_name'] = 'Premium';
+//             myupdate['/lots/' + element.key + '/maprenderdetails/stroke_color'] = '#000000';
+            
+//             ref.update(myupdate).then(function () {
+//               console.log("Write completed")
+//             }).catch(function (error) {
+//               console.log(error)
+//             });
+//           }
+//           else if (element.val().level === 'c' || element.val().level === 'd') { //special
+//             var myupdate = {};
+//             myupdate['/lots/' + element.key + '/designation'] = 'regular';
+//             myupdate['/lots/' + element.key + '/maprenderdetails/designation_name'] = 'Regular';
+//             myupdate['/lots/' + element.key + '/maprenderdetails/stroke_color'] = '#F5F5F5';
+            
+//             ref.update(myupdate).then(function () {
+//               console.log("Write completed")
+//             }).catch(function (error) {
+//               console.log(error)
+//             });
+//           }          
+
+//         });
+
+//         // res.status(200).send('ok:' + snapshot.numChildren());
+
+//       // }).catch(reason => {
+//       //   res.status(200).send('Map Render Details Updates in status color: ' + reason);
+//       // });
+
+//     }
+//     else {
+//       // res.status(200).send('Map Render Details Updates in status color: snapshot null');
+//       console.log('Map 57, null');
+//     }
+
+//   }).catch(reason => {
+//     res.status(200).send('Map Render Details Updates: ' + reason);
+//   });  
+
+//   ref.child('lots').orderByChild('block').equalTo('63').once('value').then(snapshot => {
+//     if (snapshot.exists()) {
+//       // getStatusColors().then(statusColors => {
+//         snapshot.forEach(element => {
+//           if (element.val().level === 'a' || element.val().level === 'b') { //premium
+//             var myupdate = {};
+//             myupdate['/lots/' + element.key + '/designation'] = 'premium';
+//             myupdate['/lots/' + element.key + '/maprenderdetails/designation_name'] = 'Premium';
+//             myupdate['/lots/' + element.key + '/maprenderdetails/stroke_color'] = '#000000';
+            
+//             ref.update(myupdate).then(function () {
+//               console.log("Write completed")
+//             }).catch(function (error) {
+//               console.log(error)
+//             });
+//           }
+//           else if (element.val().level === 'c' || element.val().level === 'd') { //special
+//             var myupdate = {};
+//             myupdate['/lots/' + element.key + '/designation'] = 'regular';
+//             myupdate['/lots/' + element.key + '/maprenderdetails/designation_name'] = 'Regular';
+//             myupdate['/lots/' + element.key + '/maprenderdetails/stroke_color'] = '#F5F5F5';
+            
+//             ref.update(myupdate).then(function () {
+//               console.log("Write completed")
+//             }).catch(function (error) {
+//               console.log(error)
+//             });
+//           }          
+
+//         });
+
+//         // res.status(200).send('ok:' + snapshot.numChildren());
+
+//       // }).catch(reason => {
+//       //   res.status(200).send('Map Render Details Updates in status color: ' + reason);
+//       // });
+
+//     }
+//     else {
+//       // res.status(200).send('Map Render Details Updates in status color: snapshot null');
+//       console.log('Map 57, null');
+//     }
+
+//   }).catch(reason => {
+//     res.status(200).send('Map Render Details Updates: ' + reason);
+//   }); 
+  
+//   ref.child('lots').orderByChild('block').equalTo('64').once('value').then(snapshot => {
+//     if (snapshot.exists()) {
+//       // getStatusColors().then(statusColors => {
+//         snapshot.forEach(element => {
+//           if (element.val().level === 'a' || element.val().level === 'b') { //premium
+//             var myupdate = {};
+//             myupdate['/lots/' + element.key + '/designation'] = 'premium';
+//             myupdate['/lots/' + element.key + '/maprenderdetails/designation_name'] = 'Premium';
+//             myupdate['/lots/' + element.key + '/maprenderdetails/stroke_color'] = '#000000';
+            
+//             ref.update(myupdate).then(function () {
+//               console.log("Write completed")
+//             }).catch(function (error) {
+//               console.log(error)
+//             });
+//           }
+//           else if (element.val().level === 'c' || element.val().level === 'd') { //special
+//             var myupdate = {};
+//             myupdate['/lots/' + element.key + '/designation'] = 'regular';
+//             myupdate['/lots/' + element.key + '/maprenderdetails/designation_name'] = 'Regular';
+//             myupdate['/lots/' + element.key + '/maprenderdetails/stroke_color'] = '#F5F5F5';
+            
+//             ref.update(myupdate).then(function () {
+//               console.log("Write completed")
+//             }).catch(function (error) {
+//               console.log(error)
+//             });
+//           }          
+
+//         });
+
+//         // res.status(200).send('ok:' + snapshot.numChildren());
+
+//       // }).catch(reason => {
+//       //   res.status(200).send('Map Render Details Updates in status color: ' + reason);
+//       // });
+
+//     }
+//     else {
+//       // res.status(200).send('Map Render Details Updates in status color: snapshot null');
+//       console.log('Map 57, null');
+//     }
+
+//   }).catch(reason => {
+//     res.status(200).send('Map Render Details Updates: ' + reason);
+//   });  
+
+//   ref.child('lots').orderByChild('block').equalTo('65').once('value').then(snapshot => {
+//     if (snapshot.exists()) {
+//       // getStatusColors().then(statusColors => {
+//         snapshot.forEach(element => {
+//           if (element.val().level === 'a' || element.val().level === 'b') { //premium
+//             var myupdate = {};
+//             myupdate['/lots/' + element.key + '/designation'] = 'premium';
+//             myupdate['/lots/' + element.key + '/maprenderdetails/designation_name'] = 'Premium';
+//             myupdate['/lots/' + element.key + '/maprenderdetails/stroke_color'] = '#000000';
+            
+//             ref.update(myupdate).then(function () {
+//               console.log("Write completed")
+//             }).catch(function (error) {
+//               console.log(error)
+//             });
+//           }
+//           else if (element.val().level === 'c' || element.val().level === 'd') { //special
+//             var myupdate = {};
+//             myupdate['/lots/' + element.key + '/designation'] = 'regular';
+//             myupdate['/lots/' + element.key + '/maprenderdetails/designation_name'] = 'Regular';
+//             myupdate['/lots/' + element.key + '/maprenderdetails/stroke_color'] = '#F5F5F5';
+            
+//             ref.update(myupdate).then(function () {
+//               console.log("Write completed")
+//             }).catch(function (error) {
+//               console.log(error)
+//             });
+//           }          
+
+//         });
+
+//         res.status(200).send('ok:');
+//         // res.status(200).send('ok:' + snapshot.numChildren());
+
+//       // }).catch(reason => {
+//       //   res.status(200).send('Map Render Details Updates in status color: ' + reason);
+//       // });
+
+//     }
+//     else {
+//       // res.status(200).send('Map Render Details Updates in status color: snapshot null');
+//       console.log('Map 57, null');
+//     }
+
+//   }).catch(reason => {
+//     res.status(200).send('Map Render Details Updates: ' + reason);
+//   });  
+
+  
+
+// });
+
+// exports.updateBlockToAvailable = functions.https.onRequest((req, res) => {
+//   ref.child('lots').orderByChild('block').equalTo('57').once('value').then(snapshot => {
+//     if (snapshot.exists()) {
+//       getStatusColors().then(statusColors => {
+//         snapshot.forEach(element => {
+//           if (element.val().status === 'notyetavailable') {
+//             var myupdate = {};
+//             myupdate['/lots/' + element.key + '/status'] = 'available';
+//             myupdate['/lots/' + element.key + '/maprenderdetails/bg_color'] = (typeof (statusColors['available']) != 'undefined' ? statusColors['available'].bg_color : 'gray');
+//             myupdate['/lots/' + element.key + '/maprenderdetails/fore_color'] = (typeof (statusColors['available']) != 'undefined' ? statusColors['available'].fore_color : 'white');
+//             myupdate['/lots/' + element.key + '/maprenderdetails/status_name'] = (typeof (statusColors['available']) != 'undefined' ? statusColors['available'].name : '');
+
+//             ref.update(myupdate).then(function () {
+//               console.log("Write completed")
+//             }).catch(function (error) {
+//               console.log(error)
+//             });
+//           }
+
+//         });
+
+//         res.status(200).send('ok:' + snapshot.numChildren());
+
+//       }).catch(reason => {
+//         res.status(200).send('Map Render Details Updates in status color: ' + reason);
+//       });
+
+//     }
+//     else {
+//       // res.status(200).send('Map Render Details Updates in status color: snapshot null');
+//       console.log('Map 57, null');
+//     }
+
+//   }).catch(reason => {
+//     res.status(200).send('Map Render Details Updates: ' + reason);
+//   });
+// });
+
+
 // exports.updateBlocksMapRenderDetails = functions.https.onRequest((req, res) => {
 //   ref.child('blocks').once('value').then(snapshot => {
 //     if (snapshot.exists()) {
